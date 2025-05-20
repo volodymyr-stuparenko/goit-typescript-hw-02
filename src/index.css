@@ -1,0 +1,25 @@
+:root {
+  background-color: rgb(50, 50, 50);
+}
+
+*,
+*::before,
+*::after {
+  color: rgba(255, 255, 255, 0.87);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style-type: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  cursor: pointer;
+}

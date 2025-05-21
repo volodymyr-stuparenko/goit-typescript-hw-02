@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { fetchData, Results } from '../../services/MyApi';
+import css from './App.module.css';
+import { fetchData } from '../../services/MyApi';
+import { Results } from '../../services/MyApi.types';
+import ReactModal from 'react-modal';
 import SearchBar from '../SeacrhBar/SearchBar';
 import LoadMoreBtn from '../LoadMoreBtn/LoadMoreBtn';
 import ImageGallery from '../ImageGallery/ImageGallery';
@@ -7,15 +10,20 @@ import ImageModal from '../ImageModal/ImageModal';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  ReactModal.setAppElement(rootElement);
+}
+
 function App() {
-  const [images, setImages] = useState([]);
-  const [query, setQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [modalIsOpen, setIsOpen] = useState(false);
-  const [currentImage, setCurrentImage] = useState(null);
+  const [images, setImages] = useState<Results[]>([]);
+  const [query, setQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const [modalIsOpen, setIsOpen] = useState<boolean>(false);
+  const [currentImage, setCurrentImage] = useState<string | null>(null);
 
   function openModal() {
     setIsOpen(true);
@@ -24,81 +32,110 @@ function App() {
     setIsOpen(false);
   }
 
-  const handleClick = (imgUrl) => {
+  const handleClick = (imgUrl: string) => {
     setCurrentImage(imgUrl);
     openModal();
   };
 
-  const handleSearch = async (query, page) => {
-    setCurrentPage(page);
-    if (page === 1) {
-      setImages(() => {
-        return [];
-      });
-    }
-    try {
-      setLoading(true);
-      setError(false);
-      const jsonData = await searchImages(query, page);
-      if (
-        Object.keys(jsonData).length === 0 ||
-        !jsonData.results ||
-        jsonData.results.length === 0
-      ) {
-        toast.error('No results!');
-        setTotalPages(page);
-        return;
+  useEffect(() => {
+    const abortController = new AbortController();
+    const getData = async () => {
+      if (!query) return;
+      try {
+        setLoading(true);
+        const data = await fetchData(
+          query,
+          currentPage,
+          abortController.signal
+        );
+        setImages((prev) => [...prev, ...data.results]);
+        setTotalPages(data.total_pages);
+      } catch (error) {
+        console.log(error);
+        setError(true);
+      } finally {
+        setLoading(false);
       }
-      if (page === 1 && jsonData.total_pages) {
-        setTotalPages(jsonData.total_pages);
-      }
-      const newImages = jsonData.results.map((image) => {
-        return {
-          alt: image.alt_description,
-          blurHash: image.blur_hash,
-          color: image.color,
-          small: image.urls.small,
-          regular: image.urls.regular,
-          id: image.id,
-        };
-      });
-      if (page === 1) {
-        setImages(newImages);
-      } else {
-        setImages((prev) => {
-          return [...prev, ...newImages];
-        });
-      }
-    } catch (error) {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
+    };
+    getData();
+    return () => {
+      abortController.abort();
+    };
+  }, [query, currentPage]);
+
+  const handleChangeQuery = (newQuery: string) => {
+    setQuery(newQuery);
+    setImages([]);
+    setCurrentPage(1);
   };
+
+  // const handleSearch = async (query, page) => {
+  //   setCurrentPage(page);
+  //   if (page === 1) {
+  //     setImages(() => {
+  //       return [];
+  //     });
+  //   }
+  //   try {
+  //     setLoading(true);
+  //     setError(false);
+  //     const jsonData = await searchImages(query, page);
+  //     if (
+  //       Object.keys(jsonData).length === 0 ||
+  //       !jsonData.results ||
+  //       jsonData.results.length === 0
+  //     ) {
+  //       toast.error('No results!');
+  //       setTotalPages(page);
+  //       return;
+  //     }
+  //     if (page === 1 && jsonData.total_pages) {
+  //       setTotalPages(jsonData.total_pages);
+  //     }
+  //     const newImages = jsonData.results.map((image) => {
+  //       return {
+  //         alt: image.alt_description,
+  //         blurHash: image.blur_hash,
+  //         color: image.color,
+  //         small: image.urls.small,
+  //         regular: image.urls.regular,
+  //         id: image.id,
+  //       };
+  //     });
+  //     if (page === 1) {
+  //       setImages(newImages);
+  //     } else {
+  //       setImages((prev) => {
+  //         return [...prev, ...newImages];
+  //       });
+  //     }
+  //   } catch (error) {
+  //     setError(true);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className={css.app}>
-      <SearchBar
-        onSubmit={(searchQuery) => {
-          handleSearch(searchQuery, 1);
-          setQuery(searchQuery);
-        }}
-        toast={toast}
-      />
+      <SearchBar handleChangeQuery={handleChangeQuery} />
       {images.length > 0 && !error && (
-        <ImageGallery images={images} handleClick={handleClick} />
+        <ImageGallery sendPhoto={images} handleClick={handleClick} />
       )}
       {loading && <Loader />}
-      {error && <ErrorMessage toast={toast} />}
-      {currentPage < totalPages && !error && !loading && (
-        <LoadMoreBtn loadMore={() => handleSearch(query, currentPage + 1)} />
+      {!loading && error && <ErrorMessage />}
+      {currentPage < totalPages && !loading && (
+        <LoadMoreBtn
+          setPage={setCurrentPage}
+          totalPages={totalPages}
+          currentPage={currentPage}
+        />
       )}
       <ImageModal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
         currentImage={currentImage}
       />
-      <Toaster />
     </div>
   );
 }

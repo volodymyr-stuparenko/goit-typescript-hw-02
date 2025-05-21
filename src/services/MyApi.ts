@@ -1,16 +1,5 @@
 import axios from 'axios';
-
-export interface Results {
-  id: string | number;
-  urls: {
-    regular: string;
-    small: string;
-  };
-}
-interface GetDataImg {
-  total_pages: number;
-  results: Results[];
-}
+import { GetDataImg } from './MyApi.types';
 
 const myKey = 'VCOnMe1DpUA-YflVb2CuIdDFtorjZPzeH0ijBeaY1fo';
 
@@ -20,7 +9,7 @@ export const fetchData = async (
   signal: AbortSignal
 ): Promise<GetDataImg> => {
   const response = await axios.get<GetDataImg>(
-    `https://api.unsplash.com/search/photos/?client_id=${myKey}&per_page=5&query=${query}&page=${page}`,
+    `https://api.unsplash.com/search/photos/?client_id=${myKey}&per_page=12&query=${query}&page=${page}`,
     { signal }
   );
   console.log(response.data);

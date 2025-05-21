@@ -1,4 +1,5 @@
 import ReactModal from 'react-modal';
+import { ImageModalProps } from './ImageModal.types';
 
 const customStyles = {
   content: {
@@ -15,9 +16,17 @@ const customStyles = {
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
 };
-ReactModal.setAppElement(document.getElementById('root'));
 
-const ImageModal = ({ isOpen, onRequestClose, currentImage }) => {
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  ReactModal.setAppElement(rootElement);
+}
+
+const ImageModal: React.FC<ImageModalProps> = ({
+  isOpen,
+  onRequestClose,
+  currentImage,
+}) => {
   return (
     <ReactModal
       style={customStyles}

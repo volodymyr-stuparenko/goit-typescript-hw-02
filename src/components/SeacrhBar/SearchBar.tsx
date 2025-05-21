@@ -1,17 +1,21 @@
 import css from './SearchBar.module.css';
+import toast from 'react-hot-toast';
+import { SearchBarProps, SearchForm, SearchFormEvent } from './SeacrhBar.types';
 
-const SearchBar = ({ onSubmit, toast }) => {
-  const handleSubmit = (evt) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  handleChangeQuery,
+}: SearchBarProps) => {
+  const handleSubmit = (evt: SearchFormEvent): void => {
     evt.preventDefault();
-    const form = evt.target;
-    const query = form.elements.query.value.trim();
+    const form = evt.target as SearchForm;
+    const query: string = form.elements.query.value.trim();
 
     if (query == '') {
       toast.error('The field cannot be empty!');
       return;
     }
 
-    onSubmit(query);
+    handleChangeQuery(query);
     form.reset();
   };
 

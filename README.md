@@ -1,1 +1,1 @@
-# React hw 04
+# React + TypeScript hw 02

@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import css from './App.module.css';
-import { searchImages } from '../../services/MyApi';
+import { fetchData, Results } from '../../services/MyApi';
 import SearchBar from '../SeacrhBar/SearchBar';
 import LoadMoreBtn from '../LoadMoreBtn/LoadMoreBtn';
 import ImageGallery from '../ImageGallery/ImageGallery';
 import ImageModal from '../ImageModal/ImageModal';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
-import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
   const [images, setImages] = useState([]);

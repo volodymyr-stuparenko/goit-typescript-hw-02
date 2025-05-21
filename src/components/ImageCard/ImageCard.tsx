@@ -1,13 +1,12 @@
 import css from './ImageCard.module.css';
 
-const ImageCard = ({ image, handleClick }) => {
+const ImageCard = ({ handleClick, sendItem }) => {
   return (
     <div className={css.imgWrapper}>
       <img
         className={css.img}
-        onClick={() => handleClick(image.regular)}
-        src={image.small}
-        alt={image.alt}
+        onClick={() => handleClick(sendItem.urls.regular)}
+        src={sendItem.small}
         width={400}
         max-height={400}
       />
